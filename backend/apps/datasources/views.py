@@ -1,82 +1,221 @@
 """
 Views for datasources application.
+
+This module provides API endpoints for data synchronization operations.
 """
 
-from rest_framework import viewsets, permissions, status
-from rest_framework.decorators import action
+import logging
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
-from .models import DataSource, SyncLog
-from .serializers import DataSourceSerializer, SyncLogSerializer
+
+from .sync_service import DataSyncService
+
+logger = logging.getLogger(__name__)
 
 
-class DataSourceViewSet(viewsets.ReadOnlyModelViewSet):
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def sync_leagues(request):
     """
-    ViewSet for DataSource model.
+    Trigger league synchronization.
     
-    GET /api/datasources/sources/ - List data sources
-    GET /api/datasources/sources/{id}/ - Get data source detail
-    GET /api/datasources/sources/{id}/sync-logs/ - Get sync logs for source
+    POST /api/datasources/sync/leagues/
+    
+    Request Body:
+        {
+            "sport_id": 1
+        }
+    
+    Returns:
+        200: Sync completed successfully
+        500: Sync failed
     """
-    
-    queryset = DataSource.objects.filter(is_active=True)
-    serializer_class = DataSourceSerializer
-    permission_classes = [permissions.IsAdminUser]
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['source_type', 'is_active']
-    
-    @action(detail=True, methods=['get'])
-    def sync_logs(self, request, pk=None):
-        """
-        Get sync logs for a specific data source.
+    try:
+        sport_id = request.data.get('sport_id', 1)
         
-        GET /api/datasources/sources/{id}/sync-logs/
-        """
-        data_source = self.get_object()
-        logs = SyncLog.objects.filter(data_source=data_source).order_by('-started_at')[:20]
-        
-        serializer = SyncLogSerializer(logs, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=True, methods=['post'])
-    def trigger_sync(self, request, pk=None):
-        """
-        Trigger a manual sync for data source.
-        
-        POST /api/datasources/sources/{id}/trigger-sync/
-        
-        Note: This is a placeholder. Actual sync logic should be implemented
-        in background tasks using Celery.
-        """
-        data_source = self.get_object()
-        
-        # Create a sync log entry
-        sync_log = SyncLog.objects.create(
-            data_source=data_source,
-            status=SyncLog.Status.PENDING
-        )
-        
-        # TODO: Trigger actual sync task using Celery
-        # from .tasks import sync_data_source
-        # sync_data_source.delay(sync_log.id)
+        sync_service = DataSyncService()
+        result = sync_service.sync_leagues(sport_id=sport_id)
+        sync_service.cleanup()
         
         return Response({
-            'message': 'Sync triggered successfully',
-            'sync_log_id': sync_log.id
-        }, status=status.HTTP_202_ACCEPTED)
+            'success': result['success'],
+            'message': 'League sync completed',
+            'data': result
+        })
+    
+    except Exception as e:
+        logger.error(f"League sync failed: {str(e)}")
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class SyncLogViewSet(viewsets.ReadOnlyModelViewSet):
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def sync_teams(request):
     """
-    ViewSet for SyncLog model.
+    Trigger team synchronization for a league.
     
-    GET /api/datasources/sync-logs/ - List sync logs
-    GET /api/datasources/sync-logs/{id}/ - Get sync log detail
+    POST /api/datasources/sync/teams/
+    
+    Request Body:
+        {
+            "league_external_id": "39",
+            "sport_id": 1
+        }
     """
+    try:
+        league_id = request.data.get('league_external_id')
+        sport_id = request.data.get('sport_id', 1)
+        
+        if not league_id:
+            return Response({
+                'success': False,
+                'error': 'league_external_id is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        sync_service = DataSyncService()
+        result = sync_service.sync_teams(
+            league_external_id=league_id,
+            sport_id=sport_id
+        )
+        sync_service.cleanup()
+        
+        return Response({
+            'success': result['success'],
+            'message': 'Team sync completed',
+            'data': result
+        })
     
-    queryset = SyncLog.objects.select_related('data_source').all()
-    serializer_class = SyncLogSerializer
-    permission_classes = [permissions.IsAdminUser]
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['data_source', 'status']
-    ordering = ['-started_at']
+    except Exception as e:
+        logger.error(f"Team sync failed: {str(e)}")
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def sync_matches(request):
+    """
+    Trigger match synchronization for a league.
+    
+    POST /api/datasources/sync/matches/
+    
+    Request Body:
+        {
+            "league_external_id": "39",
+            "days_ahead": 30,
+            "sport_id": 1
+        }
+    """
+    try:
+        league_id = request.data.get('league_external_id')
+        days_ahead = request.data.get('days_ahead', 30)
+        sport_id = request.data.get('sport_id', 1)
+        
+        if not league_id:
+            return Response({
+                'success': False,
+                'error': 'league_external_id is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        sync_service = DataSyncService()
+        result = sync_service.sync_matches(
+            league_external_id=league_id,
+            days_ahead=days_ahead,
+            sport_id=sport_id
+        )
+        sync_service.cleanup()
+        
+        return Response({
+            'success': result['success'],
+            'message': 'Match sync completed',
+            'data': result
+        })
+    
+    except Exception as e:
+        logger.error(f"Match sync failed: {str(e)}")
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def sync_full(request):
+    """
+    Trigger full synchronization (teams + matches) for a league.
+    
+    POST /api/datasources/sync/full/
+    
+    Request Body:
+        {
+            "league_external_id": "39"
+        }
+    """
+    try:
+        league_id = request.data.get('league_external_id')
+        
+        if not league_id:
+            return Response({
+                'success': False,
+                'error': 'league_external_id is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        sync_service = DataSyncService()
+        results = sync_service.full_sync(league_external_id=league_id)
+        sync_service.cleanup()
+        
+        return Response({
+            'success': results['success'],
+            'message': 'Full sync completed',
+            'data': results
+        })
+    
+    except Exception as e:
+        logger.error(f"Full sync failed: {str(e)}")
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def sync_status(request):
+    """
+    Get synchronization status and history.
+    
+    GET /api/datasources/sync/status/
+    
+    Query Parameters:
+        - data_type (optional): Filter by data type (leagues, teams, matches)
+    
+    Returns:
+        200: List of sync logs
+    """
+    try:
+        data_type = request.query_params.get('data_type')
+        
+        sync_service = DataSyncService()
+        logs = sync_service.get_sync_status(data_type=data_type)
+        sync_service.cleanup()
+        
+        return Response({
+            'success': True,
+            'count': len(logs),
+            'data': logs
+        })
+    
+    except Exception as e:
+        logger.error(f"Failed to get sync status: {str(e)}")
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
