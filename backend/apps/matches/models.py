@@ -47,6 +47,7 @@ class Sport(models.Model):
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)
     
     class Meta:
+        db_table = 'sports'
         verbose_name = _('sport')
         verbose_name_plural = _('sports')
         ordering = ['name']
@@ -92,6 +93,7 @@ class Season(models.Model):
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)
     
     class Meta:
+        db_table = 'seasons'
         verbose_name = _('season')
         verbose_name_plural = _('seasons')
         ordering = ['-year']
@@ -111,7 +113,8 @@ class League(models.Model):
         Sport,
         on_delete=models.CASCADE,
         related_name='leagues',
-        verbose_name=_('sport')
+        verbose_name=_('sport'),
+        db_column='sport_id'
     )
     
     external_id = models.CharField(
@@ -157,10 +160,10 @@ class League(models.Model):
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)
     
     class Meta:
+        db_table = 'leagues'
         verbose_name = _('league')
         verbose_name_plural = _('leagues')
         ordering = ['country', 'name']
-        unique_together = [['sport', 'external_id']]
         indexes = [
             models.Index(fields=['sport', 'country']),
             models.Index(fields=['external_id']),
@@ -182,7 +185,8 @@ class Team(models.Model):
         Sport,
         on_delete=models.CASCADE,
         related_name='teams',
-        verbose_name=_('sport')
+        verbose_name=_('sport'),
+        db_column='sport_id'
     )
     
     league = models.ForeignKey(
@@ -191,7 +195,8 @@ class Team(models.Model):
         related_name='teams',
         verbose_name=_('league'),
         null=True,
-        blank=True
+        blank=True,
+        db_column='league_id'
     )
     
     external_id = models.CharField(
@@ -246,10 +251,10 @@ class Team(models.Model):
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)
     
     class Meta:
+        db_table = 'teams'
         verbose_name = _('team')
         verbose_name_plural = _('teams')
         ordering = ['name']
-        unique_together = [['sport', 'external_id']]
         indexes = [
             models.Index(fields=['sport', 'country']),
             models.Index(fields=['external_id']),
@@ -276,12 +281,14 @@ class TeamStatistics(models.Model):
     team = models.ForeignKey(
         Team, 
         on_delete=models.CASCADE,
-        related_name='statistics'
+        related_name='statistics',
+        db_column='team_id'
     )
     season = models.ForeignKey(
         Season, 
         on_delete=models.CASCADE,
-        related_name='team_statistics'
+        related_name='team_statistics',
+        db_column='season_id'
     )
     
     # Basic Statistics (Updated Daily)
@@ -437,22 +444,26 @@ class Fixture(models.Model):
     league = models.ForeignKey(
         League,
         on_delete=models.CASCADE,
-        related_name='fixtures'
+        related_name='fixtures',
+        db_column='league_id'
     )
     season = models.ForeignKey(
         Season,
         on_delete=models.CASCADE,
-        related_name='fixtures'
+        related_name='fixtures',
+        db_column='season_id'
     )
     home_team = models.ForeignKey(
         Team,
         on_delete=models.CASCADE,
-        related_name='home_fixtures'
+        related_name='home_fixtures',
+        db_column='home_team_id'
     )
     away_team = models.ForeignKey(
         Team,
         on_delete=models.CASCADE,
-        related_name='away_fixtures'
+        related_name='away_fixtures',
+        db_column='away_team_id'
     )
     
     # Match Details
@@ -579,7 +590,8 @@ class Match(models.Model):
         League,
         on_delete=models.CASCADE,
         related_name='matches',
-        verbose_name=_('league')
+        verbose_name=_('league'),
+        db_column='league_id'
     )
     
     external_id = models.CharField(
@@ -595,14 +607,16 @@ class Match(models.Model):
         Team,
         on_delete=models.CASCADE,
         related_name='home_matches',
-        verbose_name=_('home team')
+        verbose_name=_('home team'),
+        db_column='home_team_id'
     )
     
     away_team = models.ForeignKey(
         Team,
         on_delete=models.CASCADE,
         related_name='away_matches',
-        verbose_name=_('away team')
+        verbose_name=_('away team'),
+        db_column='away_team_id'
     )
     
     match_date = models.DateTimeField(_('match date'))
@@ -617,6 +631,7 @@ class Match(models.Model):
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)
     
     class Meta:
+        db_table = 'matches'
         verbose_name = _('match')
         verbose_name_plural = _('matches')
         ordering = ['-match_date']
@@ -646,8 +661,20 @@ class Prediction(models.Model):
         ML_MODEL = 'ML_MODEL', _('ML Model Prediction')
         STATISTICAL = 'STATISTICAL', _('Statistical Analysis')
     
-    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='predictions')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='predictions', blank=True, null=True)
+    match = models.ForeignKey(
+        Match, 
+        on_delete=models.CASCADE, 
+        related_name='predictions',
+        db_column='match_id'
+    )
+    user = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='predictions', 
+        blank=True, 
+        null=True,
+        db_column='user_id'
+    )
     prediction_type = models.CharField(_('prediction type'), max_length=20, choices=PredictionType.choices, default=PredictionType.USER)
     predicted_home_score = models.IntegerField(_('predicted home score'), validators=[MinValueValidator(0)])
     predicted_away_score = models.IntegerField(_('predicted away score'), validators=[MinValueValidator(0)])
@@ -659,6 +686,7 @@ class Prediction(models.Model):
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)
     
     class Meta:
+        db_table = 'predictions'
         verbose_name = _('prediction')
         verbose_name_plural = _('predictions')
         ordering = ['-created_at']
