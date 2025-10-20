@@ -196,9 +196,33 @@ SUPABASE_ANON_KEY = env('SUPABASE_ANON_KEY', default='')
 SUPABASE_SERVICE_KEY = env('SUPABASE_SERVICE_KEY', default='')
 
 
-# External API Keys
+# API-Football Configuration (RapidAPI)
+# https://rapidapi.com/api-sports/api/api-football
+API_FOOTBALL_KEY = env('API_FOOTBALL_KEY', default='')
+API_FOOTBALL_BASE_URL = env(
+    'API_FOOTBALL_BASE_URL',
+    default='https://v3.football.api-sports.io'
+)
+API_FOOTBALL_RATE_LIMIT = env.int('API_FOOTBALL_RATE_LIMIT', default=100)
+
+
+# External API Keys (Legacy - kept for compatibility)
 FOOTBALL_API_KEY = env('FOOTBALL_API_KEY', default='')
 ODDS_API_KEY = env('ODDS_API_KEY', default='')
+
+
+# Cache Configuration (for API responses)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'api_response_cache',
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,
+            'CULL_FREQUENCY': 4,  # Remove 1/4 of entries when max is reached
+        },
+        'TIMEOUT': 3600,  # Default 1 hour cache
+    }
+}
 
 
 # Logging Configuration
