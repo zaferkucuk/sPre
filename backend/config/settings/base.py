@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     'apps.core',  # Core utilities and services
     'apps.users',
     'apps.matches',
-    'apps.analytics',
+    # 'apps.analytics',  # Disabled - model conflict
     'apps.datasources',
 ]
 
@@ -196,7 +196,16 @@ SUPABASE_ANON_KEY = env('SUPABASE_ANON_KEY', default='')
 SUPABASE_SERVICE_KEY = env('SUPABASE_SERVICE_KEY', default='')
 
 
-# API-Football Configuration (RapidAPI)
+# Football-Data.org API Configuration (PRIMARY)
+# https://www.football-data.org/
+FOOTBALL_DATA_ORG_KEY = env('FOOTBALL_DATA_ORG_KEY', default='')
+FOOTBALL_DATA_ORG_URL = env(
+    'FOOTBALL_DATA_ORG_URL',
+    default='https://api.football-data.org/v4'
+)
+
+
+# API-Football Configuration (RapidAPI) - LEGACY
 # https://rapidapi.com/api-sports/api/api-football
 API_FOOTBALL_KEY = env('API_FOOTBALL_KEY', default='')
 API_FOOTBALL_BASE_URL = env(
