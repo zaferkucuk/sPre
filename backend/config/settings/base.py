@@ -196,8 +196,115 @@ SUPABASE_ANON_KEY = env('SUPABASE_ANON_KEY', default='')
 SUPABASE_SERVICE_KEY = env('SUPABASE_SERVICE_KEY', default='')
 
 
-# External API Keys
-FOOTBALL_API_KEY = env('FOOTBALL_API_KEY', default='')
+# ========================================
+# API-FOOTBALL CONFIGURATION
+# ========================================
+API_FOOTBALL_KEY = env('API_FOOTBALL_KEY', default='35fefc7e2a57cd2b9de7cfc330c0177b')
+API_FOOTBALL_BASE_URL = 'https://v3.football.api-sports.io'
+API_FOOTBALL_RATE_LIMIT = 100  # requests per day (free tier)
+
+# Supported Leagues Configuration
+SUPPORTED_LEAGUES = {
+    'tier_1': [
+        # xG supported leagues (Understat coverage)
+        {
+            'name': 'Premier League',
+            'country': 'England',
+            'api_id': 39,
+            'understat_slug': 'EPL',
+            'has_xg': True
+        },
+        {
+            'name': 'La Liga',
+            'country': 'Spain',
+            'api_id': 140,
+            'understat_slug': 'La_liga',
+            'has_xg': True
+        },
+        {
+            'name': 'Serie A',
+            'country': 'Italy',
+            'api_id': 135,
+            'understat_slug': 'Serie_A',
+            'has_xg': True
+        },
+        {
+            'name': 'Bundesliga',
+            'country': 'Germany',
+            'api_id': 78,
+            'understat_slug': 'Bundesliga',
+            'has_xg': True
+        },
+        {
+            'name': 'Ligue 1',
+            'country': 'France',
+            'api_id': 61,
+            'understat_slug': 'Ligue_1',
+            'has_xg': True
+        },
+    ],
+    'tier_2': [
+        # Standard leagues (no xG)
+        {
+            'name': 'Eredivisie',
+            'country': 'Netherlands',
+            'api_id': 88,
+            'has_xg': False
+        },
+        {
+            'name': 'Primeira Liga',
+            'country': 'Portugal',
+            'api_id': 94,
+            'has_xg': False
+        },
+        {
+            'name': 'Pro League',
+            'country': 'Belgium',
+            'api_id': 144,
+            'has_xg': False
+        },
+        {
+            'name': 'First League',
+            'country': 'Czech Republic',
+            'api_id': 345,
+            'has_xg': False
+        },
+        {
+            'name': 'Süper Lig',
+            'country': 'Turkey',
+            'api_id': 203,
+            'has_xg': False
+        },
+    ]
+}
+
+# Cache configuration for API responses
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'api_cache_table',
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+        }
+    }
+}
+
+# Data sync configuration
+DATA_SYNC_CONFIG = {
+    'daily_sync_time': '03:00',  # 3 AM
+    'weekly_xg_sync_day': 0,  # Sunday (0=Sunday, 6=Saturday)
+    'weekly_xg_sync_time': '23:00',  # 11 PM
+    'fixtures_lookahead_days': 7,
+    'results_lookback_days': 1,
+}
+
+# ========================================
+# END API-FOOTBALL CONFIGURATION
+# ========================================
+
+
+# External API Keys (legacy, keeping for backwards compatibility)
+FOOTBALL_API_KEY = env('FOOTBALL_API_KEY', default=API_FOOTBALL_KEY)
 ODDS_API_KEY = env('ODDS_API_KEY', default='')
 
 
@@ -256,6 +363,11 @@ LOGGING = {
         'apps': {
             'handlers': ['console', 'file', 'error_file'],
             'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+        'apps.matches.services': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
             'propagate': False,
         },
     },
