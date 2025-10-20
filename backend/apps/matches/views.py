@@ -51,7 +51,7 @@ def sports_list(request):
         })
     
     except SupabaseQueryError as e:
-        logger.error(f\"Error fetching sports: {str(e)}\")
+        logger.error(f"Error fetching sports: {str(e)}")
         return Response({
             'success': False,
             'error': 'Failed to fetch sports'
@@ -87,7 +87,7 @@ def sport_detail(request, sport_id):
         }, status=status.HTTP_404_NOT_FOUND)
     
     except SupabaseQueryError as e:
-        logger.error(f\"Error fetching sport {sport_id}: {str(e)}\")
+        logger.error(f"Error fetching sport {sport_id}: {str(e)}")
         return Response({
             'success': False,
             'error': 'Failed to fetch sport details'
@@ -138,7 +138,7 @@ def leagues_list(request):
         })
     
     except SupabaseQueryError as e:
-        logger.error(f\"Error fetching leagues: {str(e)}\")
+        logger.error(f"Error fetching leagues: {str(e)}")
         return Response({
             'success': False,
             'error': 'Failed to fetch leagues'
@@ -174,7 +174,7 @@ def league_detail(request, league_id):
         }, status=status.HTTP_404_NOT_FOUND)
     
     except SupabaseQueryError as e:
-        logger.error(f\"Error fetching league {league_id}: {str(e)}\")
+        logger.error(f"Error fetching league {league_id}: {str(e)}")
         return Response({
             'success': False,
             'error': 'Failed to fetch league details'
@@ -221,7 +221,7 @@ def teams_list(request):
         })
     
     except SupabaseQueryError as e:
-        logger.error(f\"Error fetching teams: {str(e)}\")
+        logger.error(f"Error fetching teams: {str(e)}")
         return Response({
             'success': False,
             'error': 'Failed to fetch teams'
@@ -257,7 +257,7 @@ def team_detail(request, team_id):
         }, status=status.HTTP_404_NOT_FOUND)
     
     except SupabaseQueryError as e:
-        logger.error(f\"Error fetching team {team_id}: {str(e)}\")
+        logger.error(f"Error fetching team {team_id}: {str(e)}")
         return Response({
             'success': False,
             'error': 'Failed to fetch team details'
@@ -294,7 +294,7 @@ def team_matches(request, team_id):
         })
     
     except SupabaseQueryError as e:
-        logger.error(f\"Error fetching matches for team {team_id}: {str(e)}\")
+        logger.error(f"Error fetching matches for team {team_id}: {str(e)}")
         return Response({
             'success': False,
             'error': 'Failed to fetch team matches'
@@ -339,7 +339,7 @@ def matches_list(request):
         })
     
     except SupabaseQueryError as e:
-        logger.error(f\"Error fetching matches: {str(e)}\")
+        logger.error(f"Error fetching matches: {str(e)}")
         return Response({
             'success': False,
             'error': 'Failed to fetch matches'
@@ -375,7 +375,7 @@ def match_detail(request, match_id):
         }, status=status.HTTP_404_NOT_FOUND)
     
     except SupabaseQueryError as e:
-        logger.error(f\"Error fetching match {match_id}: {str(e)}\")
+        logger.error(f"Error fetching match {match_id}: {str(e)}")
         return Response({
             'success': False,
             'error': 'Failed to fetch match details'
@@ -394,10 +394,10 @@ def prediction_create(request):
     
     Request Body:
         {
-            \"match_id\": 1,
-            \"predicted_winner\": \"home\",  // \"home\", \"away\", or \"draw\"
-            \"confidence_score\": 0.85,
-            \"notes\": \"Optional prediction notes\"
+            "match_id": 1,
+            "predicted_winner": "home",  // "home", "away", or "draw"
+            "confidence_score": 0.85,
+            "notes": "Optional prediction notes"
         }
     
     Returns:
@@ -419,7 +419,7 @@ def prediction_create(request):
         if request.data['predicted_winner'] not in ['home', 'away', 'draw']:
             return Response({
                 'success': False,
-                'error': 'predicted_winner must be \"home\", \"away\", or \"draw\"'
+                'error': 'predicted_winner must be "home", "away", or "draw"'
             }, status=status.HTTP_400_BAD_REQUEST)
         
         # Validate confidence_score
@@ -445,7 +445,7 @@ def prediction_create(request):
         }, status=status.HTTP_201_CREATED)
     
     except SupabaseQueryError as e:
-        logger.error(f\"Error creating prediction: {str(e)}\")
+        logger.error(f"Error creating prediction: {str(e)}")
         return Response({
             'success': False,
             'error': 'Failed to create prediction'
@@ -483,7 +483,7 @@ def predictions_list(request):
         })
     
     except SupabaseQueryError as e:
-        logger.error(f\"Error fetching predictions: {str(e)}\")
+        logger.error(f"Error fetching predictions: {str(e)}")
         return Response({
             'success': False,
             'error': 'Failed to fetch predictions'
@@ -520,7 +520,7 @@ def health_check(request):
             }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
     
     except Exception as e:
-        logger.error(f\"Health check failed: {str(e)}\")
+        logger.error(f"Health check failed: {str(e)}")
         return Response({
             'success': False,
             'error': 'Service unavailable'
