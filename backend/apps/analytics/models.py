@@ -11,9 +11,10 @@ from apps.matches.models import Team, Match
 
 class TeamStatistics(models.Model):
     """
-    Team statistics model.
+    Team statistics model for analytics.
     
-    Stores aggregated statistics for teams.
+    Stores aggregated statistics for teams focused on analytics and predictions.
+    Note: This is separate from matches.TeamStatistics which stores seasonal data.
     
     Attributes:
         team (ForeignKey): Related team
@@ -30,8 +31,9 @@ class TeamStatistics(models.Model):
     team = models.ForeignKey(
         Team,
         on_delete=models.CASCADE,
-        related_name='statistics',
-        verbose_name=_('team')
+        related_name='analytics_statistics',  # Changed from 'statistics' to avoid clash
+        verbose_name=_('team'),
+        help_text=_('Reference to the team')
     )
     
     season = models.CharField(
@@ -93,16 +95,18 @@ class TeamStatistics(models.Model):
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)
     
     class Meta:
-        verbose_name = _('team statistics')
-        verbose_name_plural = _('team statistics')
+        db_table = 'analytics_team_statistics'  # Distinct table name
+        verbose_name = _('team analytics statistics')
+        verbose_name_plural = _('team analytics statistics')
         unique_together = [['team', 'season']]
         ordering = ['-updated_at']
         indexes = [
             models.Index(fields=['team', 'season']),
+            models.Index(fields=['season']),
         ]
     
     def __str__(self):
-        return f"{self.team.name} - {self.season}"
+        return f"{self.team.name} - {self.season} (Analytics)"
     
     @property
     def points(self):
@@ -200,9 +204,14 @@ class MatchAnalytics(models.Model):
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)
     
     class Meta:
+        db_table = 'match_analytics'
         verbose_name = _('match analytics')
         verbose_name_plural = _('match analytics')
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['match']),
+            models.Index(fields=['created_at']),
+        ]
     
     def __str__(self):
         return f"Analytics for {self.match}"
