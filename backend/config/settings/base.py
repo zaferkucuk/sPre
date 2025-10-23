@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'apps.users',
     'apps.matches',
     'apps.datasources',
+    'apps.analytics',  # Added analytics app
 ]
 
 MIDDLEWARE = [
