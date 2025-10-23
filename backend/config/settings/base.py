@@ -198,6 +198,9 @@ API_FOOTBALL_BASE_URL = env(
 )
 API_FOOTBALL_RATE_LIMIT = env.int('API_FOOTBALL_RATE_LIMIT', default=100)
 
+# Football API Key (Legacy compatibility - same as API_FOOTBALL_KEY)
+FOOTBALL_API_KEY = env('API_FOOTBALL_KEY', default='')
+
 
 # Cache Configuration
 CACHES = {
