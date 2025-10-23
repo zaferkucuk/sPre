@@ -4,6 +4,7 @@ URL configuration for matches application.
 
 from django.urls import path
 from . import views
+from . import views_premier_league as pl_views
 
 app_name = 'matches'
 
@@ -28,6 +29,11 @@ urlpatterns = [
     # Predictions endpoints
     path('predictions/', views.predictions_list, name='predictions-list'),
     path('predictions/create/', views.prediction_create, name='prediction-create'),
+    
+    # Premier League specific endpoints (Django ORM)
+    path('premier-league/fixtures/', pl_views.premier_league_fixtures, name='pl-fixtures'),
+    path('premier-league/teams/', pl_views.premier_league_teams, name='pl-teams'),
+    path('premier-league/stats/', pl_views.premier_league_stats, name='pl-stats'),
     
     # Health check
     path('health/', views.health_check, name='health-check'),
